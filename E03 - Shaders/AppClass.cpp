@@ -125,7 +125,7 @@ void AppClass::Display(void)
 
 	//read uniforms and send values
 	GLuint SolidColor = glGetUniformLocation(m_uShaderProgramID, "SolidColor");
-	GLuint BoolComp = glGetUniformLocation(m_uShaderProgramID, "compOn");
+	GLboolean BoolComp = glGetUniformLocation(m_uShaderProgramID, "isComp");
 	glUniform1f(BoolComp, m_bComplimentary);
 	glUniform3f(SolidColor, m_v3Color.r, m_v3Color.g, m_v3Color.b);
 
