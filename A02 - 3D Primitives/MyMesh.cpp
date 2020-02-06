@@ -464,16 +464,11 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 			AddQuad(vertices[i][j], vertices[i][(j + 1) % a_nSubdivisions], vertices[i + 1][j], vertices[i + 1][(j + 1) % a_nSubdivisions]);
 		}
 	}
-	// connect the vertices to the bottom point
+	// connect the vertices to the top and bottom points
 	for (int i = 0; i < a_nSubdivisions; i++) {
 		AddTri(vertices[0][(i + 1) % a_nSubdivisions], vertices[0][i], botPoint);
-	}
-
-	// connect the vertices to the top point
-	for (int i = 0; i < a_nSubdivisions; i++) {
 		AddTri(vertices[a_nSubdivisions - 2][i], vertices[a_nSubdivisions - 2][(i + 1) % a_nSubdivisions], topPoint);
 	}
-
 	// -------------------------------
 
 	// Adding information about color
