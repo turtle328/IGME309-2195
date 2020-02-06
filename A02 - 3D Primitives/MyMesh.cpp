@@ -1,4 +1,8 @@
 #include "MyMesh.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <vector>
+
 void MyMesh::Init(void)
 {
 	m_bBinded = false;
@@ -121,7 +125,7 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 {
 	// Use the buffer and shader
 	GLuint nShader = m_pShaderMngr->GetShaderID("Basic");
-	glUseProgram(nShader); 
+	glUseProgram(nShader);
 
 	//Bind the VAO of this object
 	glBindVertexArray(m_VAO);
@@ -133,11 +137,11 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 	//Final Projection of the Camera
 	matrix4 m4MVP = a_mProjection * a_mView * a_mModel;
 	glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(m4MVP));
-	
+
 	//Solid
 	glUniform3f(wire, -1.0f, -1.0f, -1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);  
+	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);
 
 	//Wire
 	glUniform3f(wire, 1.0f, 0.0f, 1.0f);
@@ -158,6 +162,36 @@ void MyMesh::AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTo
 	AddVertexPosition(a_vBottomLeft);
 	AddVertexPosition(a_vBottomRight);
 	AddVertexPosition(a_vTopLeft);
+}
+
+void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, bool counterClockwise, vector3 center)
+{
+	if (a_fRadius < 0.01f)
+		a_fRadius = 0.01f;
+
+	if (a_nSubdivisions < 3)
+		a_nSubdivisions = 3;
+	if (a_nSubdivisions > 360)
+		a_nSubdivisions = 360;
+
+	/*
+		Calculate a_nSubdivisions number of points around a center point in a radial manner
+		then call the AddTri function to generate a_nSubdivision number of faces
+	*/
+	float curDeg = 0;
+	float angleIncrement = (float)360 / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vector3 point1 = center + vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		curDeg += angleIncrement;
+		vector3 point2 = center + vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		if (counterClockwise) {
+			AddTri(center, point2, point1);
+		}
+		else {
+			AddTri(point1, point2, center);
+		}
+	}
 }
 void MyMesh::AddQuad(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft, vector3 a_vTopRight)
 {
@@ -186,15 +220,15 @@ void MyMesh::GenerateCube(float a_fSize, vector3 a_v3Color)
 	//|  |
 	//0--1
 
-	vector3 point0(-fValue,-fValue, fValue); //0
-	vector3 point1( fValue,-fValue, fValue); //1
-	vector3 point2( fValue, fValue, fValue); //2
+	vector3 point0(-fValue, -fValue, fValue); //0
+	vector3 point1(fValue, -fValue, fValue); //1
+	vector3 point2(fValue, fValue, fValue); //2
 	vector3 point3(-fValue, fValue, fValue); //3
 
-	vector3 point4(-fValue,-fValue,-fValue); //4
-	vector3 point5( fValue,-fValue,-fValue); //5
-	vector3 point6( fValue, fValue,-fValue); //6
-	vector3 point7(-fValue, fValue,-fValue); //7
+	vector3 point4(-fValue, -fValue, -fValue); //4
+	vector3 point5(fValue, -fValue, -fValue); //5
+	vector3 point6(fValue, fValue, -fValue); //6
+	vector3 point7(-fValue, fValue, -fValue); //7
 
 	//F
 	AddQuad(point0, point1, point3, point2);
@@ -275,8 +309,18 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float curDeg = 0;
+	float angleIncrement = (float)360 / a_nSubdivisions;
+	vector3 center(0, 0, a_fHeight);
+
+	GenerateCircle(a_fRadius, a_nSubdivisions, true);
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vector3 point1 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		curDeg += angleIncrement;
+		vector3 point2 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		AddTri(point1, point2, center);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +344,19 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	GenerateCircle(a_fRadius, a_nSubdivisions, true);
+	GenerateCircle(a_fRadius, a_nSubdivisions, false, vector3(0, 0, a_fHeight));
+
+	float curDeg = 0;
+	float angleIncrement = (float)360 / a_nSubdivisions;
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vector3 point1 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		vector3 point4 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, a_fHeight);
+		curDeg += angleIncrement;
+		vector3 point2 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		vector3 point3 = vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, a_fHeight);
+		AddQuad(point1, point2, point4, point3);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -329,14 +385,102 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	float curDeg = 0;
+	float angleIncrement = (float)360 / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vector3 point1 = vector3(cos(curDeg * M_PI / 180) * a_fOuterRadius, sin(curDeg * M_PI / 180) * a_fOuterRadius, 0);
+		vector3 point4 = vector3(cos(curDeg * M_PI / 180) * a_fInnerRadius, sin(curDeg * M_PI / 180) * a_fInnerRadius, 0);
+		curDeg += angleIncrement;
+		vector3 point2 = vector3(cos(curDeg * M_PI / 180) * a_fOuterRadius, sin(curDeg * M_PI / 180) * a_fOuterRadius, 0);
+		vector3 point3 = vector3(cos(curDeg * M_PI / 180) * a_fInnerRadius, sin(curDeg * M_PI / 180) * a_fInnerRadius, 0);
+		vector3 point5 = vector3(point1.x, point1.y, point1.z + a_fHeight);
+		vector3 point6 = vector3(point2.x, point2.y, point2.z + a_fHeight);
+		vector3 point7 = vector3(point3.x, point3.y, point3.z + a_fHeight);
+		vector3 point8 = vector3(point4.x, point4.y, point4.z + a_fHeight);
+
+		AddQuad(point4, point3, point1, point2);
+		AddQuad(point5, point6, point8, point7);
+		AddQuad(point1, point2, point5, point6);
+		AddQuad(point8, point7, point4, point3);
+	}
+
 	// -------------------------------
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
 }
+
+void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color)
+{
+	if (a_fRadius < 0.01f)
+		a_fRadius = 0.01f;
+
+	//Sets minimum and maximum of subdivisions
+	if (a_nSubdivisions < 1)
+	{
+		GenerateCube(a_fRadius * 2.0f, a_v3Color);
+		return;
+	}
+	if (a_nSubdivisions > 10)
+		a_nSubdivisions = 10;
+
+	Release();
+	Init();
+
+	std::vector<std::vector<vector3>> vertices;
+	float x, y, z, xy; // vector positions
+	float sectorStep = 360.0f / a_nSubdivisions;
+	float stackStep = 180.0f / a_nSubdivisions;
+	float sectorAngle = 0.0f, stackAngle = -90.0f;
+
+	vector3 botPoint = vector3(0, 0, -a_fRadius);
+	vector3 topPoint = vector3(0, 0, a_fRadius);
+
+	for (int i = 0; i < a_nSubdivisions - 1; i++) {
+		vertices.push_back(std::vector<vector3>());
+	}
+
+	for (int i = 0; i < a_nSubdivisions - 1; i++) {
+		stackAngle += stackStep;
+		xy = cosf(glm::radians(stackAngle)) * a_fRadius;
+		z = sinf(glm::radians(stackAngle)) * a_fRadius;
+
+		for (int j = 0; j < a_nSubdivisions; j++) {
+			sectorAngle = j * sectorStep;
+			
+			x = xy * cosf(glm::radians(sectorAngle));
+			y = xy * sinf(glm::radians(sectorAngle));
+
+			vertices[i].push_back(vector3(x, y, z));
+		}
+	}
+
+	// connect the vertices (does not inc. top and bottom point)
+	for (int i = 0; i < a_nSubdivisions - 2; i++) {
+		for (int j = 0; j < a_nSubdivisions; j++) {
+			AddQuad(vertices[i][j], vertices[i][(j + 1) % a_nSubdivisions], vertices[i + 1][j], vertices[i + 1][(j + 1) % a_nSubdivisions]);
+		}
+	}
+	// connect the vertices to the bottom point
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		AddTri(vertices[0][(i + 1) % a_nSubdivisions], vertices[0][i], botPoint);
+	}
+
+	// connect the vertices to the top point
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		AddTri(vertices[a_nSubdivisions - 2][i], vertices[a_nSubdivisions - 2][(i + 1) % a_nSubdivisions], topPoint);
+	}
+
+	// -------------------------------
+
+	// Adding information about color
+	CompleteMesh(a_v3Color);
+	CompileOpenGL3X();
+}
+
 void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSubdivisionsA, int a_nSubdivisionsB, vector3 a_v3Color)
 {
 	if (a_fOuterRadius < 0.01f)
@@ -363,31 +507,6 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 
 	// Replace this with your code
 	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
-
-	// Adding information about color
-	CompleteMesh(a_v3Color);
-	CompileOpenGL3X();
-}
-void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color)
-{
-	if (a_fRadius < 0.01f)
-		a_fRadius = 0.01f;
-
-	//Sets minimum and maximum of subdivisions
-	if (a_nSubdivisions < 1)
-	{
-		GenerateCube(a_fRadius * 2.0f, a_v3Color);
-		return;
-	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
-
-	Release();
-	Init();
-
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
 	// -------------------------------
 
 	// Adding information about color

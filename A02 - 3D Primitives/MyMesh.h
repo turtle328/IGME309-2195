@@ -136,6 +136,15 @@ public:
 	-	vector3 a_vTopRight (D)
 	OUTPUT: ---
 	*/
+	void GenerateCircle(float a_fRadius, int a_nSubdivisions, bool counterClockwise = false, vector3 center = vector3(0, 0, 0));
+	/*
+	USAGE: Generates a circle mesh
+	ARGUMENTS:
+	-	float a_fRadius -> radius
+	-	int a_nSubdivisions -> divisions on the cap
+	-	vector3 a_v3Color -> Color of the mesh
+	OUTPUT: ---
+	*/
 	void AddQuad(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft, vector3 a_vTopRight);
 #pragma region 3D Primitives
 	/*
