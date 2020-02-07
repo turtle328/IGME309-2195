@@ -20,7 +20,7 @@ void Application::InitVariables(void)
 	m_pSphere = new MyMesh();
 	m_pSphere->GenerateSphere(0.5f, 10, C_BLUE);
 	m_pTorus = new MyMesh();
-	m_pTorus->GenerateTorus(0.5f, 0.30f, 7, 7, C_VIOLET);
+	m_pTorus->GenerateTorus(0.5f, 0.30f, 4, 4, C_VIOLET);
 
 	//Make Mesh object
 	m_pMesh = new MyMesh();

@@ -113,7 +113,7 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		m_pMesh->GenerateSphere(1.0f, 10, C_CYAN);
 		break;
 	case sf::Keyboard::F9:
-		m_pMesh->GenerateTorus(1.0f, 0.6f, 10, 10, C_CYAN);
+		m_pMesh->GenerateTorus(1.0f, 0.6f, 4, 4, C_CYAN);
 		break;
 	case sf::Keyboard::F10:
 		m_pMesh->GenerateCube(2.0f, C_CYAN);
