@@ -536,17 +536,18 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		circles.push_back(std::vector<vector4>());
 	}
 
-	matrix4 modelMatrix = matrix4(1.0f);
+	matrix4 translateMatrix = IDENTITY_M4;
+	matrix4 rotationMatrix = glm::rotate(IDENTITY_M4, glm::radians(90.0f), vector3(1, 0, 0));
 
 	// generate the outer cirlces
 	for (int i = 0; i < a_nSubdivisionsA; i++) {
 		//vector3 center = vector3();
 		float radius = a_fInnerRadius + (a_fOuterRadius - a_fInnerRadius) / 2;
 		// calculate the center of the circle
-		modelMatrix = glm::translate(IDENTITY_M4, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
+		translateMatrix = glm::translate(IDENTITY_M4, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
 		circles[i] = AddCircle((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB);
-		for (int j = 0; j < a_nSubdivisionsB; j++) {
-			circles[i][j] = modelMatrix * circles[i][j];
+		for (int j = 0; j < circles[i].size(); j++) {
+			circles[i][j] = translateMatrix * rotationMatrix * circles[i][j];
 		}
 		curDeg += degStep;
 	}
@@ -559,7 +560,7 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 				AddTri(circles[i][j], circles[i][1], center);
 			}
 			else {
-				AddTri(circles[i][j], circles[i][(j + 1) % circles[i].size()], center);
+				AddTri(circles[i][j], circles[i][j + 1], center);
 			}
 		}
 	}

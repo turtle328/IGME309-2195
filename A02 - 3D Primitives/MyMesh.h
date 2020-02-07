@@ -145,7 +145,7 @@ public:
 	-	vector3 a_v3Color -> Color of the mesh
 	OUTPUT: ---
 	*/
-	std::vector<vector4> AddCircle(float a_fRadius, int a_nSubdivisions, vector4 center = vector4(0, 0, 0, 0));
+	std::vector<vector4> AddCircle(float a_fRadius, int a_nSubdivisions, vector4 center = vector4(0, 0, 0, 1));
 	/*
 	USAGE: Generates a circle mesh
 	ARGUMENTS:
