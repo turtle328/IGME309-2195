@@ -210,14 +210,14 @@ std::vector<vector4> MyMesh::AddCircle(float a_fRadius, int a_nSubdivisions, vec
 	float curDeg = 0;
 	float angleIncrement = (float)360 / a_nSubdivisions;
 	std::vector<vector4> circlePoints;
-	circlePoints.push_back(center);
+	
+	//circlePoints.push_back(center);
 
 	for (int i = 0; i < a_nSubdivisions; i++) {
 		vector4 point1 = center + vector4(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0, 0);
 		circlePoints.push_back(point1);
 		curDeg += angleIncrement;
 		vector4 point2 = center + vector4(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0, 0);
-		//AddTri(point1, point2, center);
 	}
 	return circlePoints;
 
@@ -532,43 +532,34 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	float curDeg = 0;
 	float degStep = 360.0f / a_nSubdivisionsA;
 	std::vector<std::vector<vector4>> circles;
+	
 	for (int i = 0; i < a_nSubdivisionsA; i++) {
 		circles.push_back(std::vector<vector4>());
 	}
 
 	matrix4 translateMatrix = IDENTITY_M4;
-	matrix4 rotationMatrix = glm::rotate(IDENTITY_M4, glm::radians(90.0f), vector3(1, 0, 0));
+	matrix4 rotationMatrixX = glm::rotate(IDENTITY_M4, glm::radians(90.0f), vector3(1, 0, 0));
+	matrix4 rotationMatrixZ = IDENTITY_M4;
 
 	// generate the outer cirlces
 	for (int i = 0; i < a_nSubdivisionsA; i++) {
-		//vector3 center = vector3();
 		float radius = a_fInnerRadius + (a_fOuterRadius - a_fInnerRadius) / 2;
 		// calculate the center of the circle
 		translateMatrix = glm::translate(IDENTITY_M4, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
+		rotationMatrixZ = glm::rotate(IDENTITY_M4, glm::radians(degStep * i), vector3(0, 0, 1));
 		circles[i] = AddCircle((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB);
-		for (int j = 0; j < circles[i].size(); j++) {
-			circles[i][j] = translateMatrix * rotationMatrix * circles[i][j];
+		// correct circle vertices by using translate and rotations
+		for (int j = 0; j < a_nSubdivisionsB; j++) {
+			circles[i][j] = translateMatrix * rotationMatrixZ * rotationMatrixX * circles[i][j];
 		}
 		curDeg += degStep;
 	}
 
-	// draw the circles for debugging purposes
 	for (int i = 0; i < circles.size(); i++) {
-		vector3 center = circles[i][0];
-		for (int j = 1; j < circles[i].size(); j++) {
-			if (j + 1 >= circles[i].size()) {
-				AddTri(circles[i][j], circles[i][1], center);
-			}
-			else {
-				AddTri(circles[i][j], circles[i][j + 1], center);
-			}
+		for (int j = 0; j < circles[i].size(); j++) {
+			AddQuad(circles[i][(j + 1) % a_nSubdivisionsB], circles[i][j], circles[(i + 1) % a_nSubdivisionsA][(j + 1) % a_nSubdivisionsB], circles[(i + 1) % a_nSubdivisionsA][j]);
 		}
 	}
-
-	//for (int i = 0; i < circles[0].size(); i++) {
-	//	glm::rotateZ()
-	//	circles[0][i] = glm::rotateZ(circles[0][i], (M_PI / 4.0));
-	//}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
