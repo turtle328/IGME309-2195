@@ -193,7 +193,7 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, bool counterCl
 		}
 	}
 }
-std::vector<vector3> MyMesh::AddCircle(float a_fRadius, int a_nSubdivisions, vector3 center)
+std::vector<vector4> MyMesh::AddCircle(float a_fRadius, int a_nSubdivisions, vector4 center)
 {
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
@@ -209,14 +209,14 @@ std::vector<vector3> MyMesh::AddCircle(float a_fRadius, int a_nSubdivisions, vec
 	*/
 	float curDeg = 0;
 	float angleIncrement = (float)360 / a_nSubdivisions;
-	std::vector<vector3> circlePoints;
+	std::vector<vector4> circlePoints;
 	circlePoints.push_back(center);
 
 	for (int i = 0; i < a_nSubdivisions; i++) {
-		vector3 point1 = center + vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		vector4 point1 = center + vector4(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0, 0);
 		circlePoints.push_back(point1);
 		curDeg += angleIncrement;
-		vector3 point2 = center + vector3(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0);
+		vector4 point2 = center + vector4(cos(curDeg * M_PI / 180) * a_fRadius, sin(curDeg * M_PI / 180) * a_fRadius, 0, 0);
 		//AddTri(point1, point2, center);
 	}
 	return circlePoints;
@@ -531,23 +531,36 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 
 	float curDeg = 0;
 	float degStep = 360.0f / a_nSubdivisionsA;
-	std::vector<std::vector<vector3>> circles;
+	std::vector<std::vector<vector4>> circles;
 	for (int i = 0; i < a_nSubdivisionsA; i++) {
-		circles.push_back(std::vector<vector3>());
+		circles.push_back(std::vector<vector4>());
 	}
 
+	matrix4 modelMatrix = matrix4(1.0f);
+
+	// generate the outer cirlces
 	for (int i = 0; i < a_nSubdivisionsA; i++) {
-		// calculate the center of the circle
-		vector3 center = vector3();
+		//vector3 center = vector3();
 		float radius = a_fInnerRadius + (a_fOuterRadius - a_fInnerRadius) / 2;
-		circles[i] = AddCircle((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
+		// calculate the center of the circle
+		modelMatrix = glm::translate(IDENTITY_M4, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
+		circles[i] = AddCircle((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB);
+		for (int j = 0; j < a_nSubdivisionsB; j++) {
+			circles[i][j] = modelMatrix * circles[i][j];
+		}
 		curDeg += degStep;
 	}
 
+	// draw the circles for debugging purposes
 	for (int i = 0; i < circles.size(); i++) {
 		vector3 center = circles[i][0];
 		for (int j = 1; j < circles[i].size(); j++) {
-			AddTri(circles[i][j], circles[i][(j + 1) % circles[i].size()], center);
+			if (j + 1 >= circles[i].size()) {
+				AddTri(circles[i][j], circles[i][1], center);
+			}
+			else {
+				AddTri(circles[i][j], circles[i][(j + 1) % circles[i].size()], center);
+			}
 		}
 	}
 
