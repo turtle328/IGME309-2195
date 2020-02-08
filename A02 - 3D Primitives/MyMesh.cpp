@@ -193,7 +193,7 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, bool counterCl
 		}
 	}
 }
-std::vector<vector4> MyMesh::AddCircle(float a_fRadius, int a_nSubdivisions, vector4 center)
+std::vector<vector4> MyMesh::MakeCircleVerts(float a_fRadius, int a_nSubdivisions, vector4 center)
 {
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
@@ -447,14 +447,10 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
 
-	//Sets minimum and maximum of subdivisions
-	if (a_nSubdivisions < 1)
-	{
-		GenerateCube(a_fRadius * 2.0f, a_v3Color);
-		return;
-	}
-	//if (a_nSubdivisions > 10)
-	//	a_nSubdivisions = 10;
+	if (a_nSubdivisions < 3)
+		a_nSubdivisions = 3;
+	if (a_nSubdivisions > 360)
+		a_nSubdivisions = 360;
 
 	Release();
 	Init();
@@ -547,7 +543,7 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		// calculate the center of the circle
 		translateMatrix = glm::translate(IDENTITY_M4, vector3(cos(curDeg * M_PI / 180) * radius, sin(curDeg * M_PI / 180) * radius, 0));
 		rotationMatrixZ = glm::rotate(IDENTITY_M4, glm::radians(degStep * i), vector3(0, 0, 1));
-		circles[i] = AddCircle((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB);
+		circles[i] = MakeCircleVerts((a_fOuterRadius - a_fInnerRadius) / 2, a_nSubdivisionsB);
 		// correct circle vertices by using translate and rotations
 		for (int j = 0; j < a_nSubdivisionsB; j++) {
 			circles[i][j] = translateMatrix * rotationMatrixZ * rotationMatrixX * circles[i][j];
@@ -555,8 +551,8 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		curDeg += degStep;
 	}
 
-	for (int i = 0; i < circles.size(); i++) {
-		for (int j = 0; j < circles[i].size(); j++) {
+	for (int i = 0; i < a_nSubdivisionsA; i++) {
+		for (int j = 0; j < a_nSubdivisionsB; j++) {
 			AddQuad(circles[i][(j + 1) % a_nSubdivisionsB], circles[i][j], circles[(i + 1) % a_nSubdivisionsA][(j + 1) % a_nSubdivisionsB], circles[(i + 1) % a_nSubdivisionsA][j]);
 		}
 	}
