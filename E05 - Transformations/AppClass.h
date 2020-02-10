@@ -20,6 +20,7 @@ class Application
 	String m_sProgrammer = "Alex Rosenbach - ajr694@rit.edu";
 
 	matrix4 globalPos = matrix4();
+	std::vector<vector3> blockPositions;
 	float curDeg = 0;
 	float shipSpeed = 0.01f;
 	float amplitude = 0.01f;

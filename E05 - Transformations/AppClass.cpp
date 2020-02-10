@@ -8,33 +8,13 @@ void Application::InitVariables(void)
 
 	//Move global pos to the left
 	globalPos = glm::translate(globalPos, vector3(-10, 0, 0));
-}
-void Application::Update(void)
-{
-	//Update the system so it knows how much time has passed since the last call
-	m_pSystem->Update();
 
-	//Is the arcball active?
-	ArcBall();
+	// make the ship parts level by level
 
-	//Is the first person camera active?
-	CameraRotation();
-}
-void Application::Display(void)
-{
-	// Clear the screen
-	ClearScreen();
-
-	// move the ship
-	globalPos = glm::translate(globalPos, vector3(shipSpeed, glm::cos(curDeg) * amplitude, 0));
-	curDeg += shipSpeed;
-
-	std::vector<vector3> blockPositions(1.0f);
-	
 	// level 0
 	blockPositions.push_back(vector3(1, 0, 0));
 	blockPositions.push_back(vector3(2, 0, 0));
-	
+
 	// level 1
 	blockPositions.push_back(vector3(3, 1, 0));
 	blockPositions.push_back(vector3(5, 1, 0));
@@ -67,8 +47,28 @@ void Application::Display(void)
 	blockPositions.push_back(vector3(0, 3, 0));
 	blockPositions.push_back(vector3(0, 4, 0));
 	blockPositions.push_back(vector3(0, 5, 0));
+}
+void Application::Update(void)
+{
+	//Update the system so it knows how much time has passed since the last call
+	m_pSystem->Update();
 
-	// take the vector of positions and make 2 blocks for each, the original positon and a flipped X version of it, unless it's a middle block (x = 0)
+	//Is the arcball active?
+	ArcBall();
+
+	//Is the first person camera active?
+	CameraRotation();
+}
+void Application::Display(void)
+{
+	// Clear the screen
+	ClearScreen();
+
+	// move the ship
+	globalPos = glm::translate(globalPos, vector3(shipSpeed, glm::cos(curDeg) * amplitude, 0));
+	curDeg += shipSpeed;
+
+	// take the vector of positions and render 2 blocks for each, the original positon and a flipped X version of it, unless it's a middle block (x = 0)
 	for (vector3 blockPosition : blockPositions) {
 		m_pMesh->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), glm::translate(globalPos, blockPosition));
 		if (blockPosition.x != 0) {
