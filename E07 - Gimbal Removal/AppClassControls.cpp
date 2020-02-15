@@ -7,7 +7,7 @@ void Application::ProcessMouseMovement(sf::Event a_event)
 	sf::Vector2i window = m_pWindow->getPosition();
 	m_v3Mouse.x = static_cast<float>(mouse.x - window.x);
 	m_v3Mouse.y = static_cast<float>(mouse.y - window.y);
-	if(!m_pSystem->IsWindowFullscreen() && !m_pSystem->IsWindowBorderless())
+	if (!m_pSystem->IsWindowFullscreen() && !m_pSystem->IsWindowBorderless())
 		m_v3Mouse += vector3(-8.0f, -32.0f, 0.0f);
 	gui.io.MousePos = ImVec2(m_v3Mouse.x, m_v3Mouse.y);
 }
@@ -416,28 +416,44 @@ void Application::ProcessKeyboard(void)
 #pragma endregion
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
 	{
-		if (fMultiplier)
-			m_v3Rotation.x -= 1.0f;
-		else
-			m_v3Rotation.x += 1.0f;
+		quaternion q1;
+
+		if (fMultiplier) {
+			q1 = glm::angleAxis(glm::radians(-1.0f), AXIS_X);
+		}
+		else {
+			q1 = glm::angleAxis(glm::radians(1.0f), AXIS_X);
+		
+		}
+		m_qOrientation *= q1;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
 	{
-		if (fMultiplier)
-			m_v3Rotation.y -= 1.0f;
-		else
-			m_v3Rotation.y += 1.0f;
+		quaternion q1;
+
+		if (fMultiplier) {
+			q1 = glm::angleAxis(glm::radians(-1.0f), AXIS_Y);
+		}
+		else {
+			q1 = glm::angleAxis(glm::radians(1.0f), AXIS_Y);
+		}
+		m_qOrientation *= q1;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 	{
-		if (fMultiplier)
-			m_v3Rotation.z -= 1.0f;
-		else
-			m_v3Rotation.z += 1.0f;
+		quaternion q1;
+
+		if (fMultiplier) {
+			q1 = glm::angleAxis(glm::radians(-1.0f), AXIS_Z);
+		}
+		else {
+			q1 = glm::angleAxis(glm::radians(1.0f), AXIS_Z);
+		}
+		m_qOrientation *= q1;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 	{
-		m_v3Rotation = vector3(0.0f);
+		m_qOrientation = quaternion();
 	}
 }
 //Joystick
