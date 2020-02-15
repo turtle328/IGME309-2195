@@ -19,7 +19,7 @@ class Application
 	vector3 m_v3Rotation;
 	MyMesh* m_pMesh = nullptr;
 
-	String m_sProgrammer = "Alex Rosenbach -ajr6974@rit.edu";
+	String m_sProgrammer = "Alex Rosenbach - ajr6974@rit.edu";
 
 private:
 	static ImGuiObject gui; //GUI object
