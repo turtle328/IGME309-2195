@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Alex Rosenbach - ajr6974@rit.edu";
 
 	//Set the position and target of the camera
 	//(I'm at [0,0,10], looking at [0,0,0] and up is the positive Y axis)
@@ -45,6 +45,10 @@ void Application::Display(void)
 	//draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 
+	vector3 v3Pos;
+	vector3 v3Tar;
+	vector3 v3Up;
+
 	//calculate view and projection
 	switch (m_uProjection)
 	{
@@ -63,6 +67,11 @@ void Application::Display(void)
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
+		v3Pos = vector3(0, 0, -15);
+		v3Tar = vector3(0.0f);
+		v3Up = AXIS_Y;
+		m_pCamera->SetPositionTargetAndUpward(v3Pos, v3Tar, v3Up);
+		m_pCamera->SetNearFar(vector2(6, 1000));
 		break;
 	case 6:
 		m_pCamera->ResetCamera();

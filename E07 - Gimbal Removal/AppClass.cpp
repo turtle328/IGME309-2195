@@ -25,6 +25,21 @@ void Application::Display(void)
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
 	m_m4Model = glm::mat4(m_qOrientation);
+	
+	vector3 v3Pos = vector3(0, 0, -40);
+	vector3 v3Target = vector3(0, 0, 0);
+	vector3 v3Up = AXIS_Y;
+
+	//m4View = glm::lookAt(v3Pos, v3Target, v3Up);
+	// m4Projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.01f, 1000.0f);
+	
+	// make these member variables
+	//float fFov = glm::radians(90.0f);
+	// float fWidth = m_pSystem->GetWindowWidth;
+	// float fHeight = m_pSystem->GetWindowHeight;
+	//float fAspect = 1080.0f / 720.0f;
+
+	//m4Projection = glm::perspective(fFov, fAspect, 0.01f, 1000.0f);
 
 	m_pMesh->Render(m4Projection, m4View, m_m4Model);
 
