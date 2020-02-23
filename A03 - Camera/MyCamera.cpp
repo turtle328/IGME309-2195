@@ -73,12 +73,12 @@ void Simplex::MyCamera::Release(void)
 	//No pointers to deallocate
 }
 
-void Simplex::MyCamera::Swap(MyCamera & other)
+void Simplex::MyCamera::Swap(MyCamera& other)
 {
 	std::swap(m_v3Position, other.m_v3Position);
 	std::swap(m_v3Target, other.m_v3Target);
 	std::swap(m_v3Above, other.m_v3Above);
-	
+
 	std::swap(m_bPerspective, other.m_bPerspective);
 
 	std::swap(m_fFOV, other.m_fFOV);
@@ -124,7 +124,7 @@ void Simplex::MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3
 	m_v3Target = a_v3Target;
 
 	m_v3Above = a_v3Position + glm::normalize(a_v3Upward);
-	
+
 	//Calculate the Matrix
 	CalculateProjectionMatrix();
 }
@@ -152,11 +152,51 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 
 void MyCamera::MoveForward(float a_fDistance)
 {
-	//The following is just an example and does not take in account the forward vector (AKA view vector)
-	m_v3Position += vector3(0.0f, 0.0f,-a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, -a_fDistance);
-	m_v3Above += vector3(0.0f, 0.0f, -a_fDistance);
+	m_v3Position += m_v3Forward * a_fDistance;
+	m_v3Target += m_v3Forward * a_fDistance;
+	m_v3Above += m_v3Forward * a_fDistance;
+
+	m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	m_v3Upward = glm::normalize(m_v3Above - m_v3Position);
+	m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
 }
 
-void MyCamera::MoveVertical(float a_fDistance){}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){}//Needs to be defined
+void MyCamera::MoveVertical(float a_fDistance)
+{
+	m_v3Position += m_v3Upward * a_fDistance;
+	m_v3Target += m_v3Upward * a_fDistance;
+	m_v3Above += m_v3Upward * a_fDistance;
+
+	m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	m_v3Upward = glm::normalize(m_v3Above - m_v3Position);
+	m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+}
+void MyCamera::MoveSideways(float a_fDistance)
+{
+	m_v3Position += m_v3Rightward * a_fDistance;
+	m_v3Target += m_v3Rightward * a_fDistance;
+	m_v3Above += m_v3Rightward * a_fDistance;
+
+	m_v3Forward = glm::normalize(m_v3Target - m_v3Position);
+	m_v3Upward = glm::normalize(m_v3Above - m_v3Position);
+	m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+}
+
+void Simplex::MyCamera::ChangePitch(float a_fDegree)
+{
+	// default rotation speed is a bit fast and sets angle direction toward mouse
+	a_fDegree *= -0.1f;
+	//  new forward vector = rotation f direction * curForward
+	m_v3Forward = glm::angleAxis(a_fDegree, m_v3Rightward) * m_v3Forward;
+	//  forward vector and direction add tehem together that gives you new target
+	m_v3Target = m_v3Position + m_v3Forward;
+}
+
+void Simplex::MyCamera::ChangeYaw(float a_fDegree)
+{
+	a_fDegree *= 0.2f;
+	m_v3Forward = glm::angleAxis(a_fDegree, m_v3Upward) * m_v3Forward;
+	// keep rightward vector updated
+	m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
+	m_v3Target = m_v3Position + m_v3Forward;
+}
