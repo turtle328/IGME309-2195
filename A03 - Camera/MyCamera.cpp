@@ -186,9 +186,9 @@ void Simplex::MyCamera::ChangePitch(float a_fDegree)
 {
 	// default rotation speed is a bit fast and sets angle direction toward mouse
 	a_fDegree *= -0.1f;
-	//  new forward vector = rotation f direction * curForward
+	// new forward vector = rotation f direction * curForward
 	m_v3Forward = glm::angleAxis(a_fDegree, m_v3Rightward) * m_v3Forward;
-	//  forward vector and direction add tehem together that gives you new target
+	// take the forward vector and direction add them together that gives you new target
 	m_v3Target = m_v3Position + m_v3Forward;
 }
 
@@ -196,7 +196,7 @@ void Simplex::MyCamera::ChangeYaw(float a_fDegree)
 {
 	a_fDegree *= 0.2f;
 	m_v3Forward = glm::angleAxis(a_fDegree, m_v3Upward) * m_v3Forward;
-	// keep rightward vector updated
+	// keep rightward vector updated to prevent gimbal lock
 	m_v3Rightward = glm::normalize(glm::cross(m_v3Forward, m_v3Upward));
 	m_v3Target = m_v3Position + m_v3Forward;
 }
