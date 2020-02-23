@@ -113,7 +113,7 @@ void Simplex::MyCamera::ResetCamera(void)
 
 	m_bPerspective = true; //perspective view? False is Orthographic
 
-	m_fFOV = 45.0f; //Field of View
+	m_fFOV = glm::radians(45.0f); //Field of View
 
 	m_v2Resolution = vector2(1280.0f, 720.0f); //Resolution of the window
 	m_v2NearFar = vector2(0.001f, 1000.0f); //Near and Far planes
