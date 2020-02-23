@@ -368,6 +368,7 @@ void Application::CameraRotation(float a_fSpeed)
 		fDeltaMouse = static_cast<float>(MouseY - CenterY);
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
+	
 	//Change the Yaw and the Pitch of the camera
 	m_pCamera->ChangeYaw(fAngleY);
 	m_pCamera->ChangePitch(fAngleX);
@@ -389,16 +390,27 @@ void Application::ProcessKeyboard(void)
 	if (fMultiplier)
 		fSpeed *= 5.0f;
 
+	// move forward
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		m_pCamera->MoveForward(fSpeed);
+	
+	// move back
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		m_pCamera->MoveForward(-fSpeed);
+	
+	// move left
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		m_pCamera->MoveSideways(-fSpeed);
+	
+	// move right
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 		m_pCamera->MoveSideways(fSpeed);
+
+	// move down
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 		m_pCamera->MoveVertical(-fSpeed);
+	
+	// move up
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 		m_pCamera->MoveVertical(fSpeed);
 
@@ -435,9 +447,8 @@ void Application::ProcessJoystick(void)
 	//Change the Yaw and the Pitch of the camera
 	float fUSpeed = glm::radians(m_pController[m_uActCont]->axis[SimplexAxis_U] / 150.0f);
 	float fVSpeed = glm::radians(m_pController[m_uActCont]->axis[SimplexAxis_V] / 150.0f);
-	//std::cout << fUSpeed << " " << fVSpeed << std::endl;
-	//m_pCamera->ChangeYaw(-fUSpeed);
-	//m_pCamera->ChangePitch(fVSpeed);
+	m_pCamera->ChangeYaw(-fUSpeed);
+	m_pCamera->ChangePitch(fVSpeed);
 #pragma endregion
 #pragma region ModelOrientation Orientation
 	m_qArcBall = quaternion(vector3(glm::radians(m_pController[m_uActCont]->axis[SimplexAxis_POVY] / 20.0f), 0.0f, 0.0f)) * m_qArcBall;
