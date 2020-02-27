@@ -186,9 +186,9 @@ void Simplex::MyCamera::ChangePitch(float a_fDegree)
 {
 	// default rotation speed is a bit fast and sets angle direction toward mouse
 	a_fDegree *= -0.1f;
-	// new forward vector = rotation f direction * curForward
+	// new forward vector = rotation r direction * curForward
 	m_v3Forward = glm::angleAxis(a_fDegree, m_v3Rightward) * m_v3Forward;
-	// take the forward vector and direction add them together that gives you new target
+	// take the forward vector and position add them together that gives you new target
 	m_v3Target = m_v3Position + m_v3Forward;
 }
 
