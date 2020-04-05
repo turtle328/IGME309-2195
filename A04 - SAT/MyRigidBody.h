@@ -15,7 +15,7 @@ class MyRigidBody
 {
 	MeshManager* m_pMeshMngr = nullptr; //for displaying the Rigid Body
 
-	bool m_bVisibleBS = false; //Visibility of bounding sphere
+	bool m_bVisibleBS = true; //Visibility of bounding sphere
 	bool m_bVisibleOBB = true; //Visibility of Oriented bounding box
 	bool m_bVisibleARBB = true; //Visibility of axis (Re)aligned bounding box
 
@@ -103,7 +103,7 @@ public:
 	ARGUMENTS: MyRigidBody* const other -> inspected rigid body
 	OUTPUT: are they colliding?
 	*/
-	bool IsColliding(MyRigidBody* const a_pOther);
+	int IsColliding(MyRigidBody* const a_pOther);
 #pragma region Accessors
 	/*
 	Usage: Gets visibility of bounding sphere

@@ -27,6 +27,11 @@ class Application
 	MyRigidBody* m_pSteveRB = nullptr; //Rigid Body of the model
 
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu"; //programmer
+
+	const String SATString[16] = {
+	"SAT_NONE", "SAT_AX", "SAT_AY", "SAT_AZ", "SAT_BX", "SAT_BY", "SAT_BZ", "SAT_AXxBX", "SAT_AXxBY", "SAT_AXxBZ",
+	"SAT_AYxBX", "SAT_AYxBY", "SAT_AYxBZ", "SAT_AZxBX", "SAT_AZxBY", "SAT_AZxBZ" };
+
 private:
 	static ImGuiObject gui; //GUI object
 	bool m_bGUI_Main = true; //show Main GUI window?
@@ -172,6 +177,8 @@ private:
 	OUTPUT: ---
 	*/
 	void ReleaseControllers(void);
+
+	void GeneratePlane(uint);
 #pragma endregion
 
 #pragma region Application Controls

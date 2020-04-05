@@ -4,7 +4,7 @@ using namespace Simplex;
 void MyRigidBody::Init(void)
 {
 	m_pMeshMngr = MeshManager::GetInstance();
-	m_bVisibleBS = false;
+	m_bVisibleBS = true;
 	m_bVisibleOBB = true;
 	m_bVisibleARBB = false;
 
@@ -71,7 +71,7 @@ void MyRigidBody::SetColorNotColliding(vector3 a_v3Color) { m_v3ColorNotCollidin
 vector3 MyRigidBody::GetCenterLocal(void) { return m_v3Center; }
 vector3 MyRigidBody::GetMinLocal(void) { return m_v3MinL; }
 vector3 MyRigidBody::GetMaxLocal(void) { return m_v3MaxL; }
-vector3 MyRigidBody::GetCenterGlobal(void){	return vector3(m_m4ToWorld * vector4(m_v3Center, 1.0f)); }
+vector3 MyRigidBody::GetCenterGlobal(void) { return vector3(m_m4ToWorld * vector4(m_v3Center, 1.0f)); }
 vector3 MyRigidBody::GetMinGlobal(void) { return m_v3MinG; }
 vector3 MyRigidBody::GetMaxGlobal(void) { return m_v3MaxG; }
 vector3 MyRigidBody::GetHalfWidth(void) { return m_v3HalfWidth; }
@@ -224,19 +224,22 @@ void MyRigidBody::ClearCollidingList(void)
 {
 	m_CollidingRBSet.clear();
 }
-bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
+int MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {
 	//check if spheres are colliding as pre-test
 	bool bColliding = (glm::distance(GetCenterGlobal(), a_pOther->GetCenterGlobal()) < m_fRadius + a_pOther->m_fRadius);
-	
+	int result = 20;
+
 	//if they are colliding check the SAT
 	if (bColliding)
 	{
-		if(SAT(a_pOther) != eSATResults::SAT_NONE)
+		result = SAT(a_pOther);
+
+		if (result != eSATResults::SAT_NONE)
 			bColliding = false;// reset to false
 	}
 
-	if (bColliding) //they are colliding
+	if (result == 0) //they are colliding
 	{
 		this->AddCollisionWith(a_pOther);
 		a_pOther->AddCollisionWith(this);
@@ -247,7 +250,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 		a_pOther->RemoveCollisionWith(this);
 	}
 
-	return bColliding;
+	return result;
 }
 void MyRigidBody::AddToRenderList(void)
 {
@@ -276,16 +279,134 @@ void MyRigidBody::AddToRenderList(void)
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	/*
-	Your code goes here instead of this comment;
+	float projRadA, projRadB;
 
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
+	matrix4 aModel = GetModelMatrix();
+	matrix4 bModel = a_pOther->GetModelMatrix();
+
+	// rotation matrix expressing B in A's coordinate frame
+	matrix3 r, rAbs;
+
+	vector3 aExtents = GetHalfWidth();
+	vector3 bExtents = a_pOther->GetHalfWidth();
+
+	// compute distance between centers of A and B
+	vector3 dist = a_pOther->GetCenterGlobal() - GetCenterGlobal();
+	vector4 distVec4 = vector4(dist, 0);
+
+	// bring the dist vector into A's coordinate frame
+	dist = vector3(glm::dot(distVec4, aModel[0]), glm::dot(distVec4, aModel[1]), glm::dot(distVec4, aModel[2]));
+
+	// compute rotation matrix expressing B in A's coordinate frame
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			r[i][j] = glm::dot(aModel[i], bModel[j]);
+			rAbs[i][j] = glm::abs(r[i][j]) + DBL_EPSILON;
+		}
+	}
+
+	// test the 3 axes of A
+	for (int i = 0; i < 3; i++) {
+		projRadA = aExtents[i];
+		projRadB = bExtents[0] * rAbs[i][0] + bExtents[1] * rAbs[i][1] + bExtents[2] * rAbs[i][2];
+
+		if (glm::abs(dist[i]) > projRadA + projRadB) {
+			switch (i) {
+			case 0:
+				return eSATResults::SAT_AX;
+				break;
+			case 1:
+				return eSATResults::SAT_AY;
+				break;
+			case 2:
+				return eSATResults::SAT_AZ;
+				break;
+			}
+		}
+	}
+
+	// test the 3 axes of B
+	for (int i = 0; i < 3; i++) {
+		projRadA = aExtents[0] * rAbs[0][i] + aExtents[1] * rAbs[1][i] + aExtents[2] * rAbs[2][i];
+		projRadB = bExtents[i];
+
+		if (glm::abs(dist[0] * r[0][i] + dist[1] * r[1][i] + dist[2] * r[2][i]) > projRadA + projRadB) {
+			switch (i) {
+			case 0:
+				return eSATResults::SAT_BX;
+				break;
+			case 1:
+				return eSATResults::SAT_BY;
+				break;
+			case 2:
+				return eSATResults::SAT_BZ;
+				break;
+			}
+		}
+	}
+
+	// test for Ax x Bx
+	projRadA = aExtents[1] * rAbs[2][0] + aExtents[2] * rAbs[1][0];
+	projRadB = bExtents[1] * rAbs[0][2] + bExtents[2] * rAbs[0][1];
+	if (glm::abs(dist[2] * r[1][0] - dist[1] * r[2][0]) > projRadA + projRadB) {
+		return eSATResults::SAT_AXxBX;
+	}
+
+	// test for Ax x By
+	projRadA = aExtents[1] * rAbs[2][1] + aExtents[2] * rAbs[1][1];
+	projRadB = bExtents[0] * rAbs[0][2] + bExtents[2] * rAbs[0][0];
+	if (glm::abs(dist[2] * r[1][1] - dist[1] * r[2][1]) > projRadA + projRadB) {
+		return eSATResults::SAT_AXxBY;
+	}
+
+	// test for Ax x Bz
+	projRadA = aExtents[1] * rAbs[2][2] + aExtents[2] * rAbs[1][2];
+	projRadB = bExtents[0] * rAbs[0][1] + bExtents[1] * rAbs[0][0];
+	if (glm::abs(dist[2] * r[1][2] - dist[1] * r[2][2]) > projRadA + projRadB) {
+		return eSATResults::SAT_AXxBZ;
+	}
+
+	// test for Ay x Bx
+	projRadA = aExtents[0] * rAbs[2][0] + aExtents[2] * rAbs[0][0];
+	projRadB = bExtents[1] * rAbs[1][2] + bExtents[2] * rAbs[1][1];
+	if (glm::abs(dist[0] * r[2][0] - dist[2] * r[0][0]) > projRadA + projRadB) {
+		return eSATResults::SAT_AYxBX;
+	}
+
+	// test for Ay x By
+	projRadA = aExtents[0] * rAbs[2][1] + aExtents[2] * rAbs[0][1];
+	projRadB = bExtents[0] * rAbs[1][2] + bExtents[2] * rAbs[1][0];
+	if (glm::abs(dist[0] * r[2][1] - dist[2] * r[0][1]) > projRadA + projRadB) {
+		return eSATResults::SAT_AYxBY;
+	}
+
+	// test for Ay x Bz
+	projRadA = aExtents[0] * rAbs[2][2] + aExtents[2] * rAbs[0][2];
+	projRadB = bExtents[0] * rAbs[1][1] + bExtents[1] * rAbs[1][0];
+	if (glm::abs(dist[0] * r[2][2] - dist[2] * r[0][2]) > projRadA + projRadB) {
+		return eSATResults::SAT_AYxBZ;
+	}
+
+	// test for Az x Bx
+	projRadA = aExtents[0] * rAbs[1][0] + aExtents[1] * rAbs[0][0];
+	projRadB = bExtents[1] * rAbs[2][2] + bExtents[2] * rAbs[2][1];
+	if (glm::abs(dist[1] * r[0][0] - dist[0] * r[1][0]) > projRadA + projRadB) {
+		return eSATResults::SAT_AZxBX;
+	}
+
+	// test for Az x By
+	projRadA = aExtents[0] * rAbs[1][1] + aExtents[1] * rAbs[0][1];
+	projRadB = bExtents[0] * rAbs[2][2] + bExtents[2] * rAbs[2][0];
+	if (glm::abs(dist[1] * r[0][1] - dist[0] * r[1][1]) > projRadA + projRadB) {
+		return eSATResults::SAT_AZxBY;
+	}
+
+	// test for Az x Bz
+	projRadA = aExtents[0] * rAbs[1][2] + aExtents[1] * rAbs[0][2];
+	projRadB = bExtents[0] * rAbs[2][1] + bExtents[1] * rAbs[2][0];
+	if (glm::abs(dist[1] * r[0][2] - dist[0] * r[1][2]) > projRadA + projRadB) {
+		return eSATResults::SAT_AZxBZ;
+	}
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;

@@ -476,6 +476,7 @@ void Application::ProcessKeyboard(void)
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 	{
 		m_qCreeper = quaternion();
+		m_qArcBall = quaternion();
 	}
 }
 //Joystick
