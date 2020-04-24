@@ -11,9 +11,9 @@ void Application::InitVariables(void)
 	m_pLightMngr->SetPosition(vector3(0.0f, 3.0f, 13.0f), 1); //set the position of first light (0 is reserved for ambient light)
 
 #ifdef DEBUG
-	uint uInstances = 900;
+	uint uInstances = 850;
 #else
-	uint uInstances = 1849;
+	uint uInstances = 1700;
 #endif
 	int nSquare = static_cast<int>(std::sqrt(uInstances));
 	m_uObjects = nSquare * nSquare;
@@ -29,7 +29,8 @@ void Application::InitVariables(void)
 			m_pEntityMngr->SetModelMatrix(m4Position);
 		}
 	}
-	m_uOctantLevels = 1;
+	m_uOctantLevels = 0;
+	m_pRoot = new MyOctant(m_uOctantLevels, 5);
 	m_pEntityMngr->Update();
 }
 void Application::Update(void)
@@ -55,7 +56,10 @@ void Application::Display(void)
 	ClearScreen();
 
 	//display octree
-	//m_pRoot->Display();
+	if (m_bDisplayTree)
+	{
+		m_pRoot->Display();
+	}
 	
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
@@ -76,4 +80,7 @@ void Application::Release(void)
 {
 	//release GUI
 	ShutdownGUI();
+
+	// release memory in octree
+	SafeDelete(m_pRoot);
 }

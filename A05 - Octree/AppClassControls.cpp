@@ -108,32 +108,15 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		m_pCameraMngr->SetCameraMode(CAM_ORTHO_X);
 		break;
 	case sf::Keyboard::F:
-		bFPSControl = !bFPSControl;
-		m_pCameraMngr->SetFPS(bFPSControl);
-		break;
-	case sf::Keyboard::PageUp:
-		++m_uOctantID;
-		/*
-		if (m_uOctantID >= m_pRoot->GetOctantCount())
-			m_uOctantID = - 1;
-		*/
-		break;
-	case sf::Keyboard::PageDown:
-		--m_uOctantID;
-		/*
-		if (m_uOctantID >= m_pRoot->GetOctantCount())
-			m_uOctantID = - 1;
-		*/
+		m_bDisplayTree = !m_bDisplayTree;
 		break;
 	case sf::Keyboard::Add:
 		if (m_uOctantLevels < 4)
 		{
 			m_pEntityMngr->ClearDimensionSetAll();
 			++m_uOctantLevels;
-			/*
 			SafeDelete(m_pRoot);
 			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
 		}
 		break;
 	case sf::Keyboard::Subtract:
@@ -141,10 +124,8 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		{
 			m_pEntityMngr->ClearDimensionSetAll();
 			--m_uOctantLevels;
-			/*
 			SafeDelete(m_pRoot);
 			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
 		}
 		break;
 	case sf::Keyboard::LShift:
